@@ -379,7 +379,7 @@ export default function Home() {
             }
             </div>
             <div className={formContainerStyle}>
-              <p>Choose which token you'd like to send</p>
+              <p>Choose which token you would like to send</p>
               <select className={selectStyle} name='tokens' id='tokens' onChange={onTokenChange}>
                 {
                   tokens.map((token, index) => (
