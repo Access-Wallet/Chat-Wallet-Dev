@@ -10,11 +10,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 const tokens = [
   {
-    address: '0x0000000000000000000000000000000000001010',
-    decimals: 18,
-    symbol: 'MATIC',
-  },
-  {
     address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
     decimals: 6,
     symbol: 'USDC'
@@ -23,6 +18,11 @@ const tokens = [
     address: '0xc2132d05d31c914a87c6611c10748aeb04b58e8f',
     decimals: 6,
     symbol: 'USDT'
+  },
+  {
+    address: '0x0000000000000000000000000000000000001010',
+    decimals: 18,
+    symbol: 'MATIC',
   },
   {
     address: '0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063',
@@ -45,7 +45,7 @@ const tokens = [
     symbol: 'OP'
   },
   {
-    address: '0x6810e776880c02933d47db1b9fc05908e5386b96',
+    address: '0x9C58BAcC331c9aa871AFD802DB6379a98e80CEdb',
     decimals: 18,
     symbol: 'GNO'
   }
@@ -57,34 +57,13 @@ export default function Home() {
   const sdkRef = useRef<SocialLogin | null>(null)
   const [loading, setLoading] = useState<boolean>(false)
 
-  let msg : string[] = []
-
-  const defaultMessage = `
-  💥 Welcome to Access Wallet 💥\n
-      --- All --- \n
-      1 - Send Tokens\n
-      2 - Switch Chains \n
-      0 - Help \n
-  `;
-
-  const sendMessage = `
-    💥 Send Tokens 💥\n
-    --- Choose Token --- \n
-    a - Polygon Matic \n
-    b - Optimism OP \n
-    c - Gnosis GNO\n
-    d - Ethereum ETH\n
-  `;
-
-
-
   // Forwarder config
   const [amount, setAmount] = useState<string>('')
   const [balances, setBalances] = useState<IBalances[]>([])
   const [gasToken, setGasToken] = useState<IBalances | null>()
   const [recipientAddress, setRecipientAddress] = useState<string>('')
   const [selectedToken, setSelectedToken] = useState(tokens[0])
-  const [messages, setMessages] = useState(msg);
+  const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
 
   useEffect(() => {
@@ -97,9 +76,7 @@ export default function Home() {
         }
       }, 1000)
     }
-    console.log(amount);
-    console.log(recipientAddress);
-  }, [interval, amount, recipientAddress])
+  }, [interval])
 
   async function login() {
     if (!sdkRef.current) {
@@ -114,7 +91,6 @@ export default function Home() {
     } else {
       setupSmartAccount()
     }
-    setMessages([...messages, defaultMessage]);
   }
 
   async function setupSmartAccount() {
@@ -147,7 +123,6 @@ export default function Home() {
     sdkRef.current.hideWallet()
     setSmartAccount(null)
     enableInterval(false)
-    setMessages(msg);
   }
 
   async function getBalance(smartAccount: SmartAccount) {
@@ -162,7 +137,6 @@ export default function Home() {
     console.log('smartAccount: ', smartAccount)
     /* use getAlltokenBalances and getTotalBalanceInUsd query the smartAccount */
     const balFromSdk = await smartAccount.getAlltokenBalances(balanceParams)
-    // alert(JSON.stringify(balFromSdk));
     console.log('balFromSdk::: ', balFromSdk)
     const usdBalFromSdk = await smartAccount.getTotalBalanceInUsd(balanceParams)
     console.log('usdBalFromSdk: ', usdBalFromSdk)
@@ -179,7 +153,6 @@ export default function Home() {
   }
 
   async function sendTokens() {
-    // alert("Sending Tokens!");
     if (!smartAccount || !gasToken) return
     let tx
 
@@ -190,8 +163,8 @@ export default function Home() {
         value: ethers.utils.parseEther(amount)
       }
     } else {
-      /* if the selected to send is not a native token (i.e. not MATIC), then configure a custom transaction */
-      const erc20Interface = new ethers.utils.Interface([
+     /* if the selected to send is not a native token (i.e. not MATIC), then configure a custom transaction */
+     const erc20Interface = new ethers.utils.Interface([
         'function transfer(address _to, uint256 _value)'
       ])
       const data = erc20Interface.encodeFunctionData(
@@ -241,89 +214,6 @@ export default function Home() {
     }
   }
 
-
-  async function handleSubmit() {
-    // inputValue = (message.split(': '))[1]
-    // alert(inputValue);
-    if (
-      inputValue === '1' || inputValue === 'a' || inputValue === 'b' || inputValue === 'c' || 
-      inputValue === 'd' || inputValue === 'Confirm' || inputValue.includes('0x') || inputValue.includes('Amount - ')
-    ) {
-      if (inputValue === '1') {
-        setMessages([...messages,  "me: " + inputValue, sendMessage]);
-      }
-      if (inputValue === 'a') {
-        const newMessage = `
-        You are sending Matic Tokens \n
-        💥 Send the amount 💥\n
-        e.g. Amount - XX \n
-        e.g. Amount - 0.1
-        `;
-        setMessages([...messages,  "me: " + inputValue, newMessage]);
-      }
-      if (inputValue === 'b') {
-        const newMessage = `
-        You are sending OP Tokens \n
-        💥 Send the amount 💥\n
-        e.g. Amount - XX \n
-        e.g. Amount - 0.1
-        `; 
-        setMessages([...messages,  "me: " + inputValue, newMessage]);
-      }
-      if (inputValue === 'c') { 
-        const newMessage = `
-        You are sending GNO Tokens \n
-        💥 Send the amount 💥\n
-        e.g. Amount - XX \n
-        e.g. Amount - 0.1
-        `;
-        setMessages([...messages,  "me: " + inputValue, newMessage]);
-      }
-      if (inputValue === 'd') { 
-        const newMessage = `
-        You are sending ETH Tokens \n
-        💥 Send the amount 💥\n
-        e.g. Amount - XX \n
-        e.g. Amount - 0.1
-        `;
-        setMessages([...messages,  "me: " + inputValue, newMessage]);
-      }
-      if (inputValue.includes('Amount - ')) {
-        const amt = inputValue.split('- ');
-        let newMessage = `
-          You are sending ` + amt[1] + ` tokens \n
-          💥 Send the Recipients Address 💥\n
-        `;
-        setAmount(amt[1]);
-        setMessages([...messages,  "me: " + inputValue, newMessage]);
-      }
-      if (inputValue.includes('0x')) {
-        const addr = inputValue;
-        // const printAddr = addr?.length > 5 ? `${addr.substring(0, 3)}...` : addr;
-        let start = addr.substring(0, 5);
-        let end = addr.slice(-4);
-        const printAddr = start + "..." + end;
-        let newMessage = `You are sending ` + amount + ` tokens \n to ` + printAddr + `.\n Send "Confirm" to initiate the transaction!`;
-        setRecipientAddress(addr);
-        var left = inputValue.substring(0, 20);
-        var right = inputValue.substring(20);
-        var result = left + '\n' + right;
-        setMessages([...messages,  "me: " + result, newMessage]);
-      }
-      if (inputValue === 'Confirm') {
-        const addr = inputValue;
-        let newMessage = `Processing Transaction!`;
-        alert("Amt: " + amount + " Addr: " + recipientAddress)
-        sendTokens();
-        setMessages([...messages,  "me: " + inputValue, newMessage]);
-      }
-    } else {
-      setMessages([...messages, "me: " + inputValue]);
-    }
-    setInputValue('');
-    
-  }
-
   return (
     <div className={containerStyle}>
       <h1 className={headerStyle}>Access Wallet</h1>
@@ -331,13 +221,11 @@ export default function Home() {
         !smartAccount && !loading && <button className={buttonStyle} onClick={login}>Login</button>
       }
       {
-        loading && <p>Loading account details...</p> 
+        loading && <p>Loading account details...</p>
       }
       {
-        !!smartAccount 
-          && 
-        (
-          <div>
+        !!smartAccount && (
+          <div className={detailsContainerStyle}>
             <h3>Smart account address:</h3>
             <p>{smartAccount.address}</p>
             <button className={buttonStyle} onClick={logout}>Logout</button>
@@ -353,7 +241,19 @@ export default function Home() {
             }
             </div>
             <div className={formContainerStyle}>
-              <p>Choose which token you would like to send</p>
+              <input
+                value={recipientAddress}
+                placeholder="recipient's address"
+                onChange={e => setRecipientAddress(e.target.value)}
+                className={inputStyle}
+              />
+              <input
+                value={amount}
+                placeholder='amount'
+                onChange={e => setAmount(e.target.value)}
+                className={inputStyle}
+              />
+               <p>Choose which token you'd like to send</p>
               <select className={selectStyle} name='tokens' id='tokens' onChange={onTokenChange}>
                 {
                   tokens.map((token, index) => (
@@ -377,31 +277,26 @@ export default function Home() {
               </select>
               <button className={buttonStyle} onClick={sendTokens}>sendTokens</button>
             </div>
-            <div className={chatStyle}>
-              {/* <div className={chatBoxStyle}> */}
-              <div className={messageContainerStyle}>
-                {messages.map((message, index) => (
-                  (message.includes('me:'))
-                  ?
-                    <div className={sentStyle} key={index}>
-                      {(message.split(': '))[1]}
-                    </div>
-                  :
-                    <div className={receivedStyle} key={index}>
-                      {message}
-                    </div>
-                ))}
-              </div>
-              <div className={inputContainerStyle}>
-                <input
-                  className={inputStyle}
-                  type="text"
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                />
-                <button className={buttonStyle} onClick={handleSubmit}>
-                  <FontAwesomeIcon icon={faPaperPlane} />
-                </button>
+            <div className={formContainerStyle}>
+              <div className={chatBoxStyle}>
+                <div className={chatStyle}>
+                  <p className={sentStyle}>Hi there!</p>
+                </div>
+                <div className={chatStyle}>
+                  <p className={receivedStyle}>How can I help you today?</p>
+                </div>
+                <div className={inputContainerStyle}>
+                  <input
+                    className={chatInputStyle}
+                    type="text"
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                  />
+                  <button className={buttonStyle} onClick={()=>{alert("Testing")}}>
+                    {/* Send */}
+                    <FontAwesomeIcon icon={faPaperPlane} />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -411,41 +306,95 @@ export default function Home() {
   )
 }
 
-const chatStyle = css`
-  background-color: #f9f9f9;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+const formContainerStyle = css`
+  display: flex;
+  flex-direction: column;
+  margin-top: 15px;
+`
+
+const inputStyle = css`
+  outline: none;
+  width: 280px;
+  border-radius: 20px;
+  border: none;
+  padding: 12px 16px;
+  margin-bottom: 5px;
+  background-color: rgba(0, 0, 0, .1);
+`
+
+const selectStyle = css`
+  width: 230px;
+  padding: 7px 11px;
+  margin: 0px 0px 9px;
+  border-radius: 10px
+`
+
+const tokenBalancesContainerStyle = css`
+  margin-top: 15px;
+`
+
+const detailsContainerStyle = css`
+  margin-top: 10px;
+`
+
+const buttonStyle = css`
+  padding: 14px;
+  width: 300px;
+  border: none;
+  cursor: pointer;
+  border-radius: 999px;
+  outline: none;
+  margin-top: 20px;
+  transition: all .25s;
+  &:hover {
+    background-color: rgba(0, 0, 0, .2); 
+  }
+`
+
+const headerStyle = css`
+  font-size: 44px;
+`
+
+const containerStyle = css`
+  width: 900px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  padding-top: 100px;
+  @media (max-width: 900px) {
+    width: 100%;
+  }
+`
+
+const chatBoxStyle = css`
+  display: flex;
+  flex-direction: column;
   width: 400px;
   height: 500px;
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-`;
-
-const messageContainerStyle = css`
-  height: 450px;
-  overflow-y: scroll; /* Add overflow-y:scroll to create a vertical scroll bar */
-  display: flex;
-  flex-direction: column;
   background-color: #f5f5f5;
+  border: 1px solid #dcdcdc;
   border-radius: 4px;
   padding: 20px;
   overflow-y: scroll;
-`;
+`
+
+const chatStyle = css`
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+`
 
 const receivedStyle = css`
   background-color: #0084ff;
   color: #fff;
   padding: 10px 15px;
   border-radius: 20px;
-  min-width: 96%;
-  max-width: 96%;
+  max-width: 70%;
   margin-right: 10px;
-  margin-bottom: 10px;
   font-size: 16px;
   font-weight: 500;
   position: relative;
-  white-space:pre-wrap;
   &:after {
     content: '';
     position: absolute;
@@ -458,19 +407,15 @@ const receivedStyle = css`
 `
 
 const sentStyle = css`
-  background-color: #eaeaea;
-  color: #000;
+  background-color: #ebebeb;
+  color: #fff;
   padding: 10px 15px;
   border-radius: 20px;
-  min-width: 96%;
-  max-width: 96%;
+  max-width: 70%;
   margin-right: 10px;
-  margin-bottom: 10px;
   font-size: 16px;
   font-weight: 500;
   position: relative;
-  white-space:pre-wrap;
-  text-align: right;
   &:after {
     content: '';
     position: absolute;
@@ -486,10 +431,10 @@ const inputContainerStyle = css`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: auto; /* Add margin-top:auto to move the inputContainer to the bottom of the chat */
+  margin-top: 10px;
 `;
 
-const inputStyle = css`
+const chatInputStyle = css`
   padding: 10px;
   border-radius: 5px;
   border: none;
@@ -497,164 +442,10 @@ const inputStyle = css`
   margin-right: 10px;
 `;
 
-const buttonStyle = css`
+const chatButtonStyle = css`
   background-color: #4CAF50;
   color: white;
   border: none;
   border-radius: 5px;
   padding: 10px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
 `;
-
-const containerStyle = css`
-  width: 900px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  padding-top: 100px;
-  @media (max-width: 900px) {
-    width: 100%;
-  }
-`
-
-const headerStyle = css`
-  font-size: 44px;
-  color: #4CAF50;
-`
-
-const tokenBalancesContainerStyle = css`
-  margin-top: 15px;
-`
-
-const formContainerStyle = css`
-  display: flex;
-  flex-direction: column;
-  margin-top: 15px;
-  display: none;
-`;
-
-// const inputStyle = css`
-//   outline: none;
-//   width: 280px;
-//   border-radius: 20px;
-//   border: none;
-//   padding: 12px 16px;
-//   margin-bottom: 5px;
-//   background-color: rgba(0, 0, 0, .1);
-// `
-
-const selectStyle = css`
-  width: 230px;
-  padding: 7px 11px;
-  margin: 0px 0px 9px;
-  border-radius: 10px
-`
-
-// const detailsContainerStyle = css`
-//   margin-top: 10px;
-// `
-
-// const buttonStyle = css`
-//   padding: 14px;
-//   width: 300px;
-//   border: none;
-//   cursor: pointer;
-//   border-radius: 999px;
-//   outline: none;
-//   margin-top: 20px;
-//   transition: all .25s;
-//   &:hover {
-//     background-color: rgba(0, 0, 0, .2); 
-//   }
-// `
-
-// const headerStyle = css`
-//   font-size: 44px;
-// `
-
-// const chatBoxStyle = css`
-//   display: flex;
-//   flex-direction: column;
-//   width: 400px;
-//   height: 500px;
-//   background-color: #f5f5f5;
-//   border: 1px solid #dcdcdc;
-//   border-radius: 4px;
-//   padding: 20px;
-//   overflow-y: scroll;
-// `
-
-// const chatStyle = css`
-//   display: flex;
-//   align-items: center;
-//   margin-bottom: 10px;
-// `
-
-// const receivedStyle = css`
-//   background-color: #0084ff;
-//   color: #fff;
-//   padding: 10px 15px;
-//   border-radius: 20px;
-//   max-width: 70%;
-//   margin-right: 10px;
-//   font-size: 16px;
-//   font-weight: 500;
-//   position: relative;
-//   &:after {
-//     content: '';
-//     position: absolute;
-//     bottom: 0;
-//     left: -8px;
-//     border-style: solid;
-//     border-width: 0 8px 8px 0;
-//     border-color: transparent #0084ff transparent transparent;
-//   }
-// `
-
-// const sentStyle = css`
-//   background-color: #ebebeb;
-//   color: #fff;
-//   padding: 10px 15px;
-//   border-radius: 20px;
-//   max-width: 70%;
-//   margin-right: 10px;
-//   font-size: 16px;
-//   font-weight: 500;
-//   position: relative;
-//   &:after {
-//     content: '';
-//     position: absolute;
-//     bottom: 0;
-//     left: -8px;
-//     border-style: solid;
-//     border-width: 0 8px 8px 0;
-//     border-color: transparent #0084ff transparent transparent;
-//   }
-// `
-
-// const inputContainerStyle = css`
-//   display: flex;
-//   justify-content: space-between;
-//   align-items: center;
-//   margin-top: 10px;
-// `;
-
-// const chatInputStyle = css`
-//   padding: 10px;
-//   border-radius: 5px;
-//   border: none;
-//   flex-grow: 1;
-//   margin-right: 10px;
-// `;
-
-// const chatButtonStyle = css`
-//   background-color: #0084ff;
-//   color: white;
-//   border: none;
-//   border-radius: 5px;
-//   padding: 10px;
-//   width: 50px;
-// `;
